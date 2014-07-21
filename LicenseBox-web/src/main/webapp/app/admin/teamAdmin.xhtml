@@ -1,0 +1,109 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core" 
+                template="../../WEB-INF/templates/defaultTemplate.xhtml">
+    <ui:define name="title">LicenseBox - Team Administration</ui:define>
+    <ui:define name="content">
+
+        <p:growl id="message" showDetail="true" sticky="true" />
+
+        <h:form id="teamAdminForm">
+
+            <p:dataTable id="teamAdminTable" value="#{teamAdminManagedBean.teams}" var="team" rows="10" paginator="true">
+
+                <p:column width="4%">
+                    <p:commandButton id="selectButton" update=":viewTeamDialogForm:viewTeamDlg"
+                                     oncomplete="viewTeamDialog.show()" icon="ui-icon-search" title="View">
+                        <f:setPropertyActionListener value="#{team}" target="#{teamAdminManagedBean.selectedTeam}"/>
+                    </p:commandButton>
+                </p:column>
+
+                <p:column headerText="Team Id">
+                    #{team.teamId}
+                </p:column>
+                <p:column headerText="Team Name">
+                    #{team.teamName}
+                </p:column>
+                <p:column headerText="Team Manager">
+                    #{team.teamManager}
+                </p:column>
+                <p:column headerText="Remove Team">
+                    <p:commandButton icon="ui-icon-closethick" id="deleteButton" update=":confirmForm:confirmDialog"
+                                     oncomplete="confirmDialog.show()">
+                        <f:setPropertyActionListener value="#{team}" target="#{teamAdminManagedBean.selectedTeam}"/>
+                    </p:commandButton>
+                </p:column>
+
+                <f:facet name="footer">
+                    <div style="overflow: auto; width: 100%">
+                    <p:commandButton id="newTeamButton" value="Create New Team" style="float: left"
+                                     icon="ui-icon-contact" update=":newTeamDialogForm:display" oncomplete="newTeamDialog.show()"/>
+                    </div>
+                </f:facet>
+            </p:dataTable>
+        </h:form>
+
+         <h:form id="viewTeamDialogForm">
+            <p:dialog header="Team Detail" widgetVar="viewTeamDialog" resizable="true" id="viewTeamDlg"  
+                      showEffect="fade" hideEffect="fade" modal="true">  
+
+                <h:panelGrid columns="2" cellpadding="4" style="margin:0 auto;">   
+
+                    <h:outputText value="Team Id:" />  
+                    <h:outputText id="teamId"  value="#{teamAdminManagedBean.selectedTeam.teamId}" style="font-weight:bold"/>  
+
+                    <h:outputText value="Team Name:" />  
+                    <h:inputText id="teamName" value="#{teamAdminManagedBean.selectedTeam.teamName}" style="font-weight:bold"
+                                 required="true" requiredMessage="Please enter a team name"/> 
+
+                    <h:outputText value="Team Manager:" />  
+                    <h:selectOneMenu id="teamManager" value="#{teamAdminManagedBean.selectedTeam.teamManager}" converter="#{appUserConverter}">
+                        <f:selectItems value="#{teamAdminManagedBean.users}" var="selectedTeamManager" itemValue="#{selectedTeamManager.username}" itemLabel="#{selectedTeamManager.username}"/>
+                    </h:selectOneMenu>
+
+                </h:panelGrid>
+                <p:commandButton action="#{teamAdminManagedBean.saveSelectedTeam()}" value="Save" update=":message :teamAdminForm:teamAdminTable"
+                                 oncomplete="viewTeamDialog.hide()"/>
+            </p:dialog>
+        </h:form>
+
+        <h:form id="newTeamDialogForm">
+            <p:dialog header="Team Detail" widgetVar="newTeamDialog" resizable="true" id="teamDlg"  
+                      showEffect="fade" hideEffect="fade" modal="true">  
+
+                <h:panelGrid id="display" columns="2" cellpadding="4" style="margin:0 auto;">   
+
+                    <h:outputText value="Team Id:" />  
+                    <h:inputText id="teamId"  value="#{teamAdminManagedBean.teamId}" style="font-weight:bold" converter="#{teamIdConverter}"
+                                 required="true" requiredMessage="Please enter the team id" validator="#{teamAdminManagedBean.validateTeamId}"/>
+
+                    <h:outputText value="Team Name:" />  
+                    <h:inputText id="teamName" value="#{teamAdminManagedBean.teamName}" style="font-weight:bold"
+                                 required="true" requiredMessage="Please enter the team name"/>  
+
+                    <h:outputText value="Team Manager:" />
+                    <h:selectOneMenu id="teamManager" value="#{teamAdminManagedBean.teamManager}" converter="#{appUserConverter}">
+                        <f:selectItems value="#{teamAdminManagedBean.users}" var="selectedTeamManager" itemValue="#{selectedTeamManager.username}" itemLabel="#{selectedTeamManager.username}"/>
+                    </h:selectOneMenu>
+
+                </h:panelGrid>
+                <p:commandButton action="#{teamAdminManagedBean.createNewTeam()}" value="Save" update=":message :teamAdminForm:teamAdminTable"
+                                 oncomplete="newTeamDialog.hide()"/>
+            </p:dialog>
+        </h:form>
+
+        <h:form id="confirmForm">
+            <p:confirmDialog id="confirmDialog" widgetVar="confirmDialog" 
+                             header="Confirm Team Delete"
+                             message="Are you sure that you want to delete the team: #{teamAdminManagedBean.selectedTeam.teamName}?"
+                             severity="info">
+                <p:commandButton id="confirm" value="Yes" oncomplete="confirmDialog.hide()" update=":message :teamAdminForm:teamAdminTable"
+                                 styleClass="ui-confirmdialog-yes" icon="ui-icon-check" actionListener="#{teamAdminManagedBean.deleteTeam()}"/>
+                <p:commandButton id="decline" value="No" oncomplete="confirmDialog.hide()"
+                                 styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>
+            </p:confirmDialog>
+        </h:form>
+    </ui:define>
+</ui:composition>

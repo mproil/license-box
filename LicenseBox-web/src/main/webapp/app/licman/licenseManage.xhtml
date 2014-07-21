@@ -1,0 +1,166 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core" 
+                template="../../WEB-INF/templates/defaultTemplate.xhtml">
+    <ui:define name="title">LicenseBox - License Management</ui:define>
+    <ui:define name="content">
+
+        <p:growl id="message" showDetail="true" sticky="true"/>
+
+        <h:form id="licenseForm">
+
+            <p:dataTable id="licenseTable" value="#{licenseManagedBean.licenses}" var="license" rows="10" paginator="true">
+
+                <f:facet name="header">
+                    License Management
+                </f:facet>
+
+                <p:column width="4%">
+                    <p:commandButton id="selectButton" update=":viewLicenseDialogForm:viewLicenseDlg"
+                                     oncomplete="viewLicenseDialog.show()" icon="ui-icon-search" title="View">
+                        <f:setPropertyActionListener value="#{license}" target="#{licenseManagedBean.selectedLicense}"/>
+                    </p:commandButton>
+                </p:column>
+
+                <p:column headerText="Program">
+                    #{license.program.programName} #{license.program.version}
+                </p:column>
+                <p:column headerText="License Number">
+                    #{license.licenseId}
+                </p:column>
+                <p:column headerText="Purchase Date">
+                    <h:outputText value="#{license.purchaseDate}">
+                        <f:convertDateTime pattern="dd/MM/yyyy" />
+                    </h:outputText>
+                </p:column>
+                <p:column headerText="License Price">
+                    #{license.price}
+                </p:column>
+                <p:column headerText="Attachment">
+                    <p:commandButton value="Download Attachment" update=":message" ajax="false" disabled="#{license.attachement == null}">
+                        <f:setPropertyActionListener value="#{license}" target="#{downloadManagedBean.selectedLicense}"/>
+                        <p:fileDownload value="#{downloadManagedBean.file}"/>
+                    </p:commandButton>
+                    <p:commandButton value="Upload Attachment" update=":attachmentFormDialog:attachmentDialog" oncomplete="attachmentDialog.show()">
+                        <f:setPropertyActionListener value="#{license}" target="#{licenseManagedBean.selectedLicense}"/>
+                    </p:commandButton>
+                </p:column>
+                <p:column headerText="Assigned To">
+                    <h:outputText rendered="#{license.appUser != null}" value="#{license.appUser.username}" style="padding-right: 10px"/>
+                    <p:commandButton rendered="#{license.appUser != null}" value="Return The License" update=":confirmForm:confirmDialog" oncomplete="confirmDialog.show()">
+                        <f:setPropertyActionListener value="#{license}" target="#{licenseManagedBean.selectedLicense}"/>
+                    </p:commandButton>
+                </p:column>
+
+                <f:facet name="footer">
+                    <div style="overflow: auto; width: 100%">
+                    <p:commandButton id="newLicenseButton" value="Create New License" style="float: left"
+                                     icon="ui-icon-document" update=":newLicenseDialogForm:display" oncomplete="newLicenseDialog.show()"/>
+                    </div>
+                </f:facet>
+
+            </p:dataTable>
+        </h:form>
+
+        <h:form id="confirmForm">
+            <p:confirmDialog id="confirmDialog" widgetVar="confirmDialog" 
+                             header="Confirm License Return"
+                             message="Are you sure that you want to return the license: #{licenseManagedBean.selectedLicense.licenseId}?"
+                             severity="info">
+                <p:commandButton id="confirm" value="Yes" oncomplete="confirmDialog.hide()" update=":message :licenseForm:licenseTable"
+                                 styleClass="ui-confirmdialog-yes" icon="ui-icon-check" actionListener="#{licenseManagedBean.returnSelectedLicense}"/>
+                <p:commandButton id="decline" value="No" oncomplete="confirmDialog.hide()"
+                                 styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>
+            </p:confirmDialog>
+        </h:form>
+
+        <h:form id="viewLicenseDialogForm">
+            <p:dialog header="License Detail" widgetVar="viewLicenseDialog" resizable="true" id="viewLicenseDlg"  
+                      showEffect="fade" hideEffect="fade" modal="true">  
+
+                <h:panelGrid columns="2" cellpadding="4" style="margin:0 auto;">   
+
+                    <h:outputText value="License:" />  
+                    <h:outputText value="#{licenseManagedBean.selectedLicense.licenseId}" style="font-weight:bold"/>  
+
+                    <h:outputText value="Program:" />  
+                    <h:outputText value="#{licenseManagedBean.selectedLicense.program.programName} #{licenseManagedBean.selectedLicense.program.version}" style="font-weight:bold"/>  
+
+                    <h:outputText value="Price:" />  
+                    <h:inputText value="#{licenseManagedBean.selectedLicense.price}" style="font-weight:bold"
+                                 required="true" requiredMessage="Please enter a price for the license" converter="#{priceConverter}"/>
+
+                    <h:outputText value="Purchase Date:" />  
+                    <p:calendar id="popcal" value="#{licenseManagedBean.selectedLicense.purchaseDate}" style="font-weight:bold"
+                                required="true" requiredMessage="Please select a purchase date"/>
+
+                    <h:outputText value="Belongs To:"/>
+                    <h:outputText value="#{licenseManagedBean.selectedLicense.appUser.username}" rendered="#{licenseManagedBean.selectedLicense.appUser != null}"/>
+
+                </h:panelGrid>
+                <br/>
+                <p:dataTable id="licenseHistoryTable" var="licenseHistory" value="#{licenseManagedBean.selectedLicenseHistory}" paginator="true" rows="5">
+                    <f:facet name="header">
+                        License History
+                    </f:facet>
+                    <p:column headerText="Start Date">
+                        <h:outputText value="#{licenseHistory.licenseHistoryPK.startDate}">
+                            <f:convertDateTime pattern="dd/MM/yyyy"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="End Date">
+                        <h:outputText value="#{licenseHistory.endDate}">
+                            <f:convertDateTime pattern="dd/MM/yyyy"/>
+                        </h:outputText>
+                    </p:column>
+                    <p:column headerText="User">
+                        #{licenseHistory.appUser.firstName} #{licenseHistory.appUser.lastName}
+                    </p:column>
+                </p:dataTable>
+                <br/>
+                <p:commandButton action="#{licenseManagedBean.saveSelectedLicense()}" update=":message :licenseForm:licenseTable" value="Save"
+                                 oncomplete="viewLicenseDialog.hide()"/>
+            </p:dialog>
+        </h:form>
+
+        <h:form id="newLicenseDialogForm">
+            <p:dialog header="New License Details" widgetVar="newLicenseDialog" resizable="true" id="licenseDlg"  
+                      showEffect="fade" hideEffect="fade" modal="true">  
+
+                <h:panelGrid id="display" columns="2" cellpadding="4" style="margin:0 auto;" rendered="#{licenseManagedBean.programs != null}">   
+
+                    <h:outputText value="License:" />  
+                    <h:inputText value="#{licenseManagedBean.licenseId}" style="font-weight:bold"
+                                 required="true" requiredMessage="Please enter a license id" validator="#{licenseManagedBean.licenseIdValidator}"/>
+
+                    <h:outputText value="Program:" />  
+                    <h:selectOneMenu value="#{licenseManagedBean.program}" converter="#{programConverter}" required="true"
+                                     requiredMessage="Please select a program for the license">
+                        <f:selectItems value="#{licenseManagedBean.programs}" var="selectedLicenseProgram" itemValue="#{selectedLicenseProgram}" itemLabel="#{selectedLicenseProgram.programName} #{selectedLicenseProgram.version}"/>
+                    </h:selectOneMenu>
+
+                    <h:outputText value="Price:" />  
+                    <h:inputText value="#{licenseManagedBean.price}" style="font-weight:bold" required="true"
+                                 requiredMessage="Please enter a price for the license" converter="#{priceConverter}"/>
+
+                    <h:outputText value="Purchase Date:" />  
+                    <p:calendar id="popcal" value="#{licenseManagedBean.purchaseDate}" style="font-weight:bold"
+                                required="true" requiredMessage="Please enter a purchase date for the license"/>
+
+                </h:panelGrid>
+                <p:commandButton action="#{licenseManagedBean.createNewLicense()}" update=":message :licenseForm:licenseTable" value="Save"
+                                 oncomplete="newLicenseDialog.hide()"/>
+            </p:dialog>
+        </h:form>
+        
+        <h:form id="attachmentFormDialog" enctype="multipart/form-data">
+            <p:dialog id="attachmentDialog" header="Add attachment" widgetVar="attachmentDialog" resizable="true"
+                      showEffect="fade" hideEffect="fade" modal="true">
+                <h:inputFile id="file" value="#{licenseManagedBean.file}"/>
+                <p:commandButton value="Upload" action="#{licenseManagedBean.handleFileUpload()}" ajax="false"/>
+            </p:dialog>
+        </h:form>
+    </ui:define>
+</ui:composition>

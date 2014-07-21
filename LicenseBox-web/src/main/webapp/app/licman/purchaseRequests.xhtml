@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="../../WEB-INF/templates/defaultTemplate.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:define name="title">LicenseBox - License Manager Purchase Requests</ui:define>
+    <ui:define name="content">
+        
+        <p:growl id="message" showDetail="true" sticky="true"/>
+
+        <h:form id="licenseFlowForm">
+
+            <p:dataTable id="licenseFlowTable" value="#{purchaseRequestsManagedBean.purchaseRequests}" var="purchaseFlow" rows="10" paginator="true"
+                         emptyMessage="Hooray!! There are no purchase requests here!">
+
+                <f:facet name="header">
+                    Purchase Requests
+                </f:facet>
+
+                <p:column headerText="Purchase Request Id">
+                    #{purchaseFlow.purchaseId}
+                </p:column>
+                <p:column headerText="Asking User">
+                    #{purchaseFlow.appUser.firstName} #{purchaseFlow.appUser.lastName}
+                </p:column>
+                <p:column headerText="Program">
+                    #{purchaseFlow.program.programName} #{purchaseFlow.program.version}
+                </p:column>
+                <p:column headerText="Approved By Manager">
+                    <h:outputText value="Yes" rendered="#{purchaseFlow.managerApproved}"/>
+                    <h:outputText value="No" rendered="#{!purchaseFlow.managerApproved}"/>
+                </p:column>
+                <p:column headerText="Purchase License">
+                    <p:commandButton id="newLicenseButton" value="Purchase New License" style="float: left" disabled="#{!purchaseFlow.managerApproved or purchaseFlow.purchaseClosed}"
+                        icon="ui-icon-document" update=":newLicenseDialogForm:display" oncomplete="newLicenseDialog.show()">
+                        <f:setPropertyActionListener value="#{purchaseFlow}" target="#{purchaseRequestsManagedBean.selectedPurchaseFlow}"/>
+                    </p:commandButton>
+                </p:column>
+
+            </p:dataTable>
+        </h:form>
+        
+        <h:form id="newLicenseDialogForm">
+            <p:dialog header="New License Details" widgetVar="newLicenseDialog" resizable="true" id="licenseDlg"  
+                      showEffect="fade" hideEffect="fade" modal="true">  
+
+                <h:panelGrid id="display" columns="2" cellpadding="4" style="margin:0 auto;" rendered="#{licenseManagedBean.programs != null}">   
+
+                    <h:outputText value="License:" />  
+                    <h:inputText value="#{purchaseRequestsManagedBean.licenseId}" style="font-weight:bold" required="true" requiredMessage="Please enter a license id"
+                                 validator="#{purchaseRequestsManagedBean.licenseIdValidator}"/>
+
+                    <h:outputText value="Program:" />  
+                    <h:outputText value="#{purchaseRequestsManagedBean.selectedPurchaseFlow.program.programName} #{purchaseRequestsManagedBean.selectedPurchaseFlow.program.version}" style="font-weight:bold"/>
+
+                    <h:outputText value="Price:" />  
+                    <h:inputText id="price" value="#{purchaseRequestsManagedBean.price}" style="font-weight:bold" required="true" requiredMessage="Please enter a price for the license"
+                                 converter="#{priceConverter}"/>
+
+                    <h:outputText value="Purchase Date:" />  
+                    <p:calendar id="popcal" value="#{purchaseRequestsManagedBean.purchaseDate}" style="font-weight:bold" required="true" requiredMessage="Please enter a purchase date"/>
+
+                </h:panelGrid>
+                <p:commandButton action="#{purchaseRequestsManagedBean.purchaseLicense()}" update=":message :licenseFlowForm:licenseFlowTable" value="Save" oncomplete="newLicenseDialog.hide()"/>
+            </p:dialog>
+        </h:form>
+    </ui:define>
+</ui:composition>

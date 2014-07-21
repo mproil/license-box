@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd" >
+<log4j:configuration>
+	
+	<appender name="LICENSEBOX_ROLLING_FILE"
+		class="org.apache.log4j.RollingFileAppender">
+		<param name="File" value="${com.sun.aas.instanceRoot}/logs/licensebox.log" />
+		<param name="Append" value="true" />
+		<param name="MaxFileSize" value="10MB" />
+		<param name="MaxBackupIndex" value="1" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern"
+				value="[%d{ISO8601}] %-5p %m%n" />
+		</layout>
+	</appender>
+
+        <logger name="com.licensebox" additivity="false">
+		<level value="info" />
+		<appender-ref ref="LICENSEBOX_ROLLING_FILE" />
+	</logger>
+		
+	<!-- ** -->
+	
+	<root>
+		<level value="INFO" />
+		<appender-ref ref="LICENSEBOX_ROLLING_FILE" />
+	</root>
+
+
+</log4j:configuration>

@@ -1,0 +1,54 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="../../WEB-INF/templates/defaultTemplate.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:define name="title">LicenseBox - Purchase Requests</ui:define>
+    <ui:define name="content">
+
+        <p:growl id="message" showDetail="true" sticky="true"/>
+
+        <h:form id="purchaseFlowForm">    
+
+            <p:dataTable id="purchaseFlowTable" value="#{purchaseApprovalManagedBean.purchaseFlows}" var="purchaseFlow" rows="10" paginator="true"
+                         emptyMessage="Hooray!! You don't have purchase requests to approve!">
+
+                <f:facet name="header">
+                    Purchase Requests
+                </f:facet>
+
+                <p:column headerText="License Request Id">
+                    #{purchaseFlow.purchaseId}
+                </p:column>
+                <p:column headerText="Asking User">
+                    #{purchaseFlow.appUser.firstName} #{purchaseFlow.appUser.lastName}
+                </p:column>
+                <p:column headerText="Program">
+                    #{purchaseFlow.program.programName} #{purchaseFlow.program.version}
+                </p:column>
+                <p:column headerText="Approve Purchase">
+                    <p:commandButton value="Approve This Purchase" update=":confirmForm:confirmDialog" oncomplete="confirmDialog.show()">
+                        <f:setPropertyActionListener value="#{purchaseFlow}" target="#{purchaseApprovalManagedBean.selectedPurchaseFlow}"/>
+                    </p:commandButton>
+                </p:column>
+
+            </p:dataTable>
+        </h:form>
+
+        <h:form id="confirmForm">
+            <p:confirmDialog id="confirmDialog" widgetVar="confirmDialog" 
+                             header="Confirm Purchase Request Approval"
+                             message="Are you sure that you want to approve the request of #{purchaseApprovalManagedBean.selectedPurchaseFlow.appUser.firstName} #{purchaseApprovalManagedBean.selectedPurchaseFlow.appUser.lastName}?"
+                             severity="info">
+                <p:commandButton id="confirm" value="Yes" oncomplete="confirmDialog.hide()" update=":message :purchaseFlowForm:purchaseFlowTable"
+                                 styleClass="ui-confirmdialog-yes" icon="ui-icon-check" actionListener="#{purchaseApprovalManagedBean.approvePurchase()}"/>
+                <p:commandButton id="decline" value="No" oncomplete="confirmDialog.hide()"
+                                 styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>
+            </p:confirmDialog>
+        </h:form>
+
+    </ui:define>
+</ui:composition>

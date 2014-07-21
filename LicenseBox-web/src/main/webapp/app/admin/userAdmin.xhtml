@@ -1,0 +1,250 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:f="http://xmlns.jcp.org/jsf/core" 
+                template="../../WEB-INF/templates/defaultTemplate.xhtml">
+    <ui:define name="title">LicenseBox - User Administration</ui:define>
+    <ui:define name="content">
+
+        <p:growl id="message" showDetail="true" sticky="true"/>
+
+        <h:form id="userAdminForm">
+
+            <p:dataTable id="userTable" value="#{userAdminManagedBean.users}" var="user" rows="10" paginator="true">
+
+                <p:column width="4%">
+                    <p:commandButton id="selectButton" update=":viewUserDialogForm:viewUserDlg"
+                                     oncomplete="viewUserDialog.show()" icon="ui-icon-search" title="View">
+                        <f:setPropertyActionListener value="#{user}" target="#{userAdminManagedBean.selectedUser}"/>
+                    </p:commandButton>
+                </p:column>
+
+                <p:column headerText="Username">
+                    #{user.username}
+                </p:column>
+                <p:column headerText="First Name">
+                    #{user.firstName}
+                </p:column>
+                <p:column headerText="Last Name">
+                    #{user.lastName}
+                </p:column>
+                <p:column headerText="Email">
+                    #{user.email}
+                </p:column>
+                <p:column headerText="Team">
+                    <h:outputText value="#{user.team.teamId}" converter="#{teamConverter}"/>
+                </p:column>
+                <p:column headerText="Roles">
+                    <ui:repeat value="#{user.appRoleList}" var="appRole" varStatus="status">
+                        <h:outputText value="#{appRole}" converter="#{appRoleConverter}"/>
+                        <h:outputText value=", " rendered="#{!status.last}"/>
+                        <h:outputText value="&lt;br/&gt;" escape="false" rendered="#{status.even and !status.last}"/>
+                    </ui:repeat>
+                </p:column>
+                <p:column headerText="Password">
+                    <p:commandButton value="Reset Password" update=":confirmForm:confirmDialog" oncomplete="confirmDialog.show()">
+                        <f:setPropertyActionListener value="#{user}" target="#{userAdminManagedBean.selectedUser}"/>
+                    </p:commandButton>
+                </p:column>
+                <p:column headerText="Enable\Disable">
+                    <p:commandButton value="Disable" update=":confirmDisableForm:confirmDisableDialog" oncomplete="confirmDisableDialog.show()"
+                                     rendered="#{!userAdminManagedBean.isUserDisabled(user.username)}">
+                        <f:setPropertyActionListener value="#{user}" target="#{userAdminManagedBean.selectedUser}"/>
+                    </p:commandButton>
+                    <p:commandButton value="Enable" update=":confirmEnableForm:confirmEnableDialog" oncomplete="confirmEnableDialog.show()"
+                                     rendered="#{userAdminManagedBean.isUserDisabled(user.username)}">
+                        <f:setPropertyActionListener value="#{user}" target="#{userAdminManagedBean.selectedUser}"/>
+                    </p:commandButton>
+                </p:column>
+
+                <f:facet name="footer">
+                    <div style="overflow: auto; width: 100%">
+                    <p:commandButton id="newUserButton" value="Create New User" style="float: left"
+                                     icon="ui-icon-person" update=":newUserDialogForm:display" oncomplete="newUserDialog.show()"/>
+                    <p:commandButton id="setManager" value="Set New Manager" style="float: left"
+                                     update=":addManagerForm:viewAddManagerDlg" oncomplete="viewAddManagerDialog.show()"/>
+                    <p:commandButton id="removeManager" value="Remove Manager" style="float: left"
+                                     update=":removeManagerForm:viewRemoveManagerDlg" oncomplete="viewRemoveManagerDialog.show()"/>
+                    <p:commandButton id="setLicenseMan" value="Set New License Manager" style="float: left"
+                                     update=":addLicenseManagerForm:viewAddLicenseManagerDlg" oncomplete="viewAddLicenseManagerDialog.show()"/>
+                    <p:commandButton id="removeLicenseMan" value="Remove License Manager" style="float: left"
+                                     update=":removeLicenseManagerForm:viewRemoveLicenseManagerDlg" oncomplete="viewRemoveLicenseManagerDialog.show()"/>
+                    </div>
+                </f:facet>
+            </p:dataTable>
+        </h:form>
+
+        <h:form id="confirmForm">
+            <p:confirmDialog id="confirmDialog" widgetVar="confirmDialog" 
+                             header="Confirm Password Reset"
+                             message="Are you sure that you want reset the password of #{userAdminManagedBean.selectedUser.username}?"
+                             severity="info">
+                <p:commandButton id="confirm" value="Yes" oncomplete="confirmDialog.hide()" update=":message"
+                                 styleClass="ui-confirmdialog-yes" icon="ui-icon-check" actionListener="#{userAdminManagedBean.resetPasswordForSelectedUser(userAdminManagedBean.selectedUser)}"/>
+                <p:commandButton id="decline" value="No" oncomplete="confirmDialog.hide()"
+                                 styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>
+            </p:confirmDialog>
+        </h:form>
+        
+        <h:form id="confirmDisableForm">
+            <p:confirmDialog id="confirmDisableDialog" widgetVar="confirmDisableDialog" 
+                             header="Confirm Disable"
+                             message="Are you sure that you want to disable the user #{userAdminManagedBean.selectedUser.username}?"
+                             severity="info">
+                <p:commandButton id="confirm" value="Yes" oncomplete="confirmDisableDialog.hide()" update=":message :userAdminForm:userTable"
+                                 styleClass="ui-confirmdialog-yes" icon="ui-icon-check" actionListener="#{userAdminManagedBean.disableUser()}"/>
+                <p:commandButton id="decline" value="No" oncomplete="confirmDisableDialog.hide()"
+                                 styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>
+            </p:confirmDialog>
+        </h:form>
+        
+        <h:form id="confirmEnableForm">
+            <p:confirmDialog id="confirmEnableDialog" widgetVar="confirmEnableDialog" 
+                             header="Confirm Enable"
+                             message="Are you sure that you want to enable the user #{userAdminManagedBean.selectedUser.username}?"
+                             severity="info">
+                <p:commandButton id="confirm" value="Yes" oncomplete="confirmEnableDialog.hide()" update=":message :userAdminForm:userTable"
+                                 styleClass="ui-confirmdialog-yes" icon="ui-icon-check" actionListener="#{userAdminManagedBean.enableUser()}"/>
+                <p:commandButton id="decline" value="No" oncomplete="confirmEnableDialog.hide()"
+                                 styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>
+            </p:confirmDialog>
+        </h:form>
+
+        <h:form id="viewUserDialogForm">
+            <p:dialog header="User Detail" widgetVar="viewUserDialog" resizable="true" id="viewUserDlg"  
+                      showEffect="fade" hideEffect="fade" modal="true">  
+
+                <h:panelGrid columns="2" cellpadding="4" style="margin:0 auto;">   
+
+                    <h:outputText value="Username:" />  
+                    <h:outputText id="username"  value="#{userAdminManagedBean.selectedUser.username}" style="font-weight:bold"/>  
+
+                    <h:outputText value="First Name:" />  
+                    <h:inputText id="firstName" value="#{userAdminManagedBean.selectedUser.firstName}" style="font-weight:bold"
+                                 required="true" requiredMessage="Please enter a first name for the user"/>  
+
+
+                    <h:outputText value="Last Name:" />  
+                    <h:inputText id="lastName" value="#{userAdminManagedBean.selectedUser.lastName}" style="font-weight:bold"
+                                 required="true" requiredMessage="Please enter a last name for the user"/>  
+
+                    <h:outputText value="Email:" />  
+                    <h:inputText id="email" value="#{userAdminManagedBean.selectedUser.email}" style="font-weight:bold"
+                                 required="true" requiredMessage="Please enter an email for the user"/>  
+
+                    <h:outputText value="Team:" />
+                    <h:selectOneMenu id="teamId" value="#{userAdminManagedBean.selectedUser.team}" converter="#{teamConverter}">
+                        <f:selectItems value="#{userAdminManagedBean.teams}" var="selectedUserTeam" itemValue="#{selectedUserTeam}" itemLabel="#{selectedUserTeam.teamName}"/>
+                    </h:selectOneMenu>
+
+                </h:panelGrid>
+                <p:commandButton action="#{userAdminManagedBean.saveSelectedUser}" value="Save" update=":message :userAdminForm:userTable"
+                                 oncomplete="viewUserDialog.hide()"/>
+            </p:dialog>
+        </h:form>
+
+        <h:form id="newUserDialogForm">
+                    <p:dialog header="User Detail" widgetVar="newUserDialog" resizable="true" id="userDlg"  
+                      showEffect="fade" hideEffect="fade" modal="true">  
+
+                <h:panelGrid id="display" columns="2" cellpadding="4" style="margin:0 auto;">   
+
+                    <h:outputText value="Username:" />  
+                    <h:inputText id="username"  value="#{userAdminManagedBean.username}" style="font-weight:bold"
+                                 required="true" requiredMessage="Please enter a username" validator="#{userAdminManagedBean.validateUsername}"/>
+
+                    <h:outputText value="First Name:" />  
+                    <h:inputText id="firstName" value="#{userAdminManagedBean.firstName}" style="font-weight:bold"
+                                 required="true" requiredMessage="Please enter a first name for the user"/>  
+
+                    <h:outputText value="Last Name:" />  
+                    <h:inputText id="lastName" value="#{userAdminManagedBean.lastName}" style="font-weight:bold"
+                                 required="true" requiredMessage="Please enter a last name for the user"/>  
+
+                    <h:outputText value="Email:" />  
+                    <h:inputText id="email" value="#{userAdminManagedBean.email}" style="font-weight:bold"
+                                 required="true" requiredMessage="Please enter an email for the user"/>  
+
+                    <h:outputText value="Team:" />
+                    <h:selectOneMenu id="teamId" value="#{userAdminManagedBean.team}" converter="#{teamConverter}">
+                        <f:selectItems value="#{userAdminManagedBean.teams}" var="selectedTeam" itemValue="#{selectedTeam}" itemLabel="#{selectedTeam.teamName}"/>
+                    </h:selectOneMenu>
+
+                </h:panelGrid>
+                <p:commandButton action="#{userAdminManagedBean.createNewUser}" value="Save" update=":message :userAdminForm:userTable"
+                                 oncomplete="newUserDialog.hide()"/>
+            </p:dialog>
+        </h:form>
+
+        <h:form id="addManagerForm">
+            <p:dialog header="Manager" widgetVar="viewAddManagerDialog" resizable="true" id="viewAddManagerDlg"  
+                      showEffect="fade" hideEffect="fade" modal="true">  
+
+                <h:panelGrid columns="2" cellpadding="4" style="margin:0 auto;">   
+
+                    <h:outputText value="Manager:" />  
+                    <h:selectOneMenu id="manager" value="#{userAdminManagedBean.managerUsername}" converter="#{appUserConverter}">
+                        <f:selectItems value="#{userAdminManagedBean.users}" var="selectedManager" itemValue="#{selectedManager.username}" itemLabel="#{selectedManager.username}"/>
+                    </h:selectOneMenu>  
+
+                </h:panelGrid>
+                <p:commandButton action="#{userAdminManagedBean.setManager()}" value="Save" update=":message :userAdminForm:userTable"
+                                 oncomplete="viewAddManagerDialog.hide()"/>
+            </p:dialog>
+        </h:form>
+
+        <h:form id="removeManagerForm">
+            <p:dialog header="Manager" widgetVar="viewRemoveManagerDialog" resizable="true" id="viewRemoveManagerDlg"  
+                      showEffect="fade" hideEffect="fade" modal="true">  
+
+                <h:panelGrid columns="2" cellpadding="4" style="margin:0 auto;">   
+
+                    <h:outputText value="Manager:" />  
+                    <h:selectOneMenu id="manager" value="#{userAdminManagedBean.managerUsername}" converter="#{appUserConverter}">
+                        <f:selectItems value="#{userAdminManagedBean.managers}" var="selectedManager" itemValue="#{selectedManager.username}" itemLabel="#{selectedManager.username}"/>
+                    </h:selectOneMenu>  
+
+                </h:panelGrid>
+                <p:commandButton action="#{userAdminManagedBean.removeManager()}" value="Save" update=":message :userAdminForm:userTable"
+                                 oncomplete="viewRemoveManagerDialog.hide()"/>
+            </p:dialog>
+        </h:form>
+
+        <h:form id="addLicenseManagerForm">
+            <p:dialog header="Add License Manager" widgetVar="viewAddLicenseManagerDialog" resizable="true" id="viewAddLicenseManagerDlg"  
+                      showEffect="fade" hideEffect="fade" modal="true">  
+
+                <h:panelGrid columns="2" cellpadding="4" style="margin:0 auto;">   
+
+                    <h:outputText value="License Manager:" />  
+                    <h:selectOneMenu id="manager" value="#{userAdminManagedBean.licenseManagerUsername}" converter="#{appUserConverter}">
+                        <f:selectItems value="#{userAdminManagedBean.users}" var="selectedLicenseManager" itemValue="#{selectedLicenseManager.username}" itemLabel="#{selectedLicenseManager.username}"/>
+                    </h:selectOneMenu>  
+
+                </h:panelGrid>
+                <p:commandButton action="#{userAdminManagedBean.setLicenseManager()}" value="Save" update=":message :userAdminForm:userTable"
+                                 oncomplete="viewAddLicenseManagerDialog.hide()"/>
+            </p:dialog>
+        </h:form>
+
+        <h:form id="removeLicenseManagerForm">
+            <p:dialog header="Remove License Manager" widgetVar="viewRemoveLicenseManagerDialog" resizable="true" id="viewRemoveLicenseManagerDlg"  
+                      showEffect="fade" hideEffect="fade" modal="true">  
+
+                <h:panelGrid columns="2" cellpadding="4" style="margin:0 auto;">   
+
+                    <h:outputText value="License Manager:" />  
+                    <h:selectOneMenu id="manager" value="#{userAdminManagedBean.licenseManagerUsername}" converter="#{appUserConverter}">
+                        <f:selectItems value="#{userAdminManagedBean.licenseManagers}" var="selectedLicenseManager" itemValue="#{selectedLicenseManager.username}" itemLabel="#{selectedLicenseManager.username}"/>
+                    </h:selectOneMenu>  
+
+                </h:panelGrid>
+                <p:commandButton action="#{userAdminManagedBean.removeLicenseManager()}" value="Save" update=":message :userAdminForm:userTable"
+                                 oncomplete="viewRemoveLicenseManagerDialog.hide()"/>
+            </p:dialog>
+        </h:form>
+    </ui:define>
+</ui:composition>

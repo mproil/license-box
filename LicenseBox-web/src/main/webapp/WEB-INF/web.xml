@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">
+    <display-name>/LicenseBox</display-name>
+    <context-param>
+        <param-name>javax.faces.PROJECT_STAGE</param-name>
+        <param-value>Development</param-value>
+    </context-param>
+    <context-param>
+        <param-name>primefaces.THEME</param-name>
+        <param-value>ui-lightness</param-value>
+    </context-param>
+    <servlet>
+        <servlet-name>Faces Servlet</servlet-name>
+        <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Faces Servlet</servlet-name>
+        <url-pattern>*.xhtml</url-pattern>
+    </servlet-mapping>
+    <session-config>
+        <session-timeout>
+            30
+        </session-timeout>
+    </session-config>
+    <welcome-file-list>
+        <welcome-file>app/index.xhtml</welcome-file>
+    </welcome-file-list>
+    <error-page>
+        <error-code>403</error-code>
+        <location>/403.xhtml</location>
+    </error-page>
+    <security-constraint>
+        <display-name>Users</display-name>
+        <web-resource-collection>
+            <web-resource-name>User Area</web-resource-name>
+            <description/>
+            <url-pattern>/app/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <description/>
+            <role-name>USER</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <security-constraint>
+        <display-name>Administrators</display-name>
+        <web-resource-collection>
+            <web-resource-name>Admin Area</web-resource-name>
+            <description/>
+            <url-pattern>/app/admin/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <description/>
+            <role-name>ADMIN</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <security-constraint>
+        <display-name>Team Leader</display-name>
+        <web-resource-collection>
+            <web-resource-name>Team Leader Area</web-resource-name>
+            <description/>
+            <url-pattern>/app/teamman/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <description/>
+            <role-name>TEAM_LEADER</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <security-constraint>
+        <display-name>Manager</display-name>
+        <web-resource-collection>
+            <web-resource-name>Manager Area</web-resource-name>
+            <description/>
+            <url-pattern>/app/manager/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <description/>
+            <role-name>MANAGER</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <security-constraint>
+        <display-name>License Manager</display-name>
+        <web-resource-collection>
+            <web-resource-name>LICENSE_MANAGER</web-resource-name>
+            <description/>
+            <url-pattern>/app/licman/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <description/>
+            <role-name>LICENSE_MANAGER</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <login-config>
+        <auth-method>FORM</auth-method>
+        <realm-name>jdbc-realm-licensebox</realm-name>
+        <form-login-config>
+            <form-login-page>/login.xhtml</form-login-page>
+            <form-error-page>/loginerror.xhtml</form-error-page>
+        </form-login-config>
+    </login-config>
+    <security-role>
+        <description/>
+        <role-name>USER</role-name>
+    </security-role>
+    <security-role>
+        <description/>
+        <role-name>ADMIN</role-name>
+    </security-role>
+    <security-role>
+        <description/>
+        <role-name>TEAM_LEADER</role-name>
+    </security-role>
+    <security-role>
+        <description/>
+        <role-name>MANAGER</role-name>
+    </security-role>
+    <security-role>
+        <description/>
+        <role-name>LICENSE_MANAGER</role-name>
+    </security-role>
+</web-app>

@@ -1,0 +1,124 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition template="../WEB-INF/templates/defaultTemplate.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core">
+    <ui:define name="title">LicenseBox - Dashboard</ui:define>
+    <ui:define name="content">
+
+        <p:growl id="message" showDetail="true" sticky="true"/>
+
+        Hello #{userSessionManagedBean.fullname}!<br/>
+        <h:outputText rendered="#{dashboardManagedBean.teamName != ''}" escape="false" value="
+                      Just to let you know, you belong to team &lt;b&gt;#{dashboardManagedBean.teamName}&lt;/b&gt; who's manager is &lt;b&gt;&lt;a href='mailto:#{dashboardManagedBean.teamManagerEmail}'&gt;#{dashboardManagedBean.teamManager}&lt;/a&gt;&lt;/b&gt;"/>
+        <h:outputText rendered="#{dashboardManagedBean.teamName == ''}" escape="false" style="font-weight:bold" value="
+                      Please note that you do not belong to any team. Please contact your &lt;a href='mailto:#{dashboardManagedBean.adminEmail}'&gt;administrator&lt;/a&gt;"/>
+        <br/>
+        <br/>
+        
+        <p:tabView id="tabView" effect="fade" effectDuration="normal">
+            <p:tab id="licensesTab" title="Licenses">
+                <h:form id="licenseForm">
+
+                    <p:dataTable id="licenseTable" value="#{dashboardManagedBean.licenses}" var="license" rows="10" paginator="true" 
+                                 emptyMessage="You do not have any licenses that are assigned to you.">
+
+                        <f:facet name="header">
+                            Licenses
+                        </f:facet>
+
+                        <p:column headerText="Program">
+                            #{license.program.programName} #{license.program.version}
+                        </p:column>
+                        <p:column headerText="License Number">
+                            #{license.licenseId}
+                        </p:column>
+                        <p:column headerText="Return License">
+                            <p:commandButton value="Return This License" update=":tabView:confirmForm:confirmDialog" oncomplete="confirmDialog.show()">
+                                <f:setPropertyActionListener value="#{license}" target="#{dashboardManagedBean.selectedLicense}"/>
+                            </p:commandButton>
+                        </p:column>
+
+                    </p:dataTable>
+                </h:form>
+
+                <h:form id="confirmForm">
+                    <p:confirmDialog id="confirmDialog" widgetVar="confirmDialog" 
+                                     header="Confirm License Return"
+                                     message="Are you sure that you want to return the license: #{dashboardManagedBean.selectedLicense.licenseId}?"
+                                     severity="info">
+                        <p:commandButton id="confirm" value="Yes" oncomplete="confirmDialog.hide()" update=":message :tabView:licenseForm:licenseTable"
+                                         styleClass="ui-confirmdialog-yes" icon="ui-icon-check" actionListener="#{dashboardManagedBean.returnSelectedLicense()}"/>
+                        <p:commandButton id="decline" value="No" oncomplete="confirmDialog.hide()"
+                                         styleClass="ui-confirmdialog-no" icon="ui-icon-close"/>
+                    </p:confirmDialog>
+                </h:form>
+            </p:tab>
+
+            <p:tab id="requestsTab" title="License Requests">
+                <h:form id="licenseFlowForm">
+
+                    <p:dataTable id="licenseFlowTable" value="#{dashboardManagedBean.licenseFlows}" var="licenseFlow" rows="10" paginator="true" 
+                                 emptyMessage="You do not have any license requests.">
+
+                        <f:facet name="header">
+                            License Requests
+                        </f:facet>
+
+
+                        <p:column headerText="License Request Number">
+                            #{licenseFlow.requestId}
+                        </p:column>
+                        <p:column headerText="Program">
+                            #{licenseFlow.program.programName} #{licenseFlow.program.version}
+                        </p:column>
+                        <p:column headerText="Request Date">
+                            <h:outputText value="#{licenseFlow.requestDate}">
+                                <f:convertDateTime pattern="dd/MM/yyyy" />
+                            </h:outputText>
+                        </p:column>
+                        <p:column headerText="Approved By Team Leader?">
+                            <h:outputText value="Yes" rendered="#{licenseFlow.teamleadApproved}"/>
+                            <h:outputText value="No" rendered="#{!licenseFlow.teamleadApproved}"/>
+                        </p:column>
+                        <p:column headerText="Approved By License Manager?">
+                            <h:outputText value="Yes" rendered="#{licenseFlow.licmanApproved}"/>
+                            <h:outputText value="No" rendered="#{!licenseFlow.licmanApproved}"/>
+                        </p:column>
+
+                        <f:facet name="footer">
+                            <div style="overflow: auto; width: 100%">
+                            <p:commandButton id="newLicenseFlowButton" value="Ask For a New License" style="float: left"
+                                             icon="ui-icon-signal-diag" update=":tabView:newLicenseFlowDialogForm:display" oncomplete="newLicenseFlowDialog.show()"/>
+                            </div>
+                        </f:facet>
+
+                    </p:dataTable>
+                </h:form>
+
+                <h:form id="newLicenseFlowDialogForm">
+                    <p:dialog header="New License Request" widgetVar="newLicenseFlowDialog" resizable="true" id="licenseFlowDlg"  
+                              showEffect="fade" hideEffect="fade" modal="true">  
+
+                        <h:panelGrid id="display" columns="2" cellpadding="4" style="margin:0 auto;" rendered="#{dashboardManagedBean.programs != null}">    
+
+                            <h:outputText value="Program:" />  
+                            <h:selectOneMenu value="#{dashboardManagedBean.program}" converter="#{programConverter}">
+                                <f:selectItems value="#{dashboardManagedBean.programs}" var="selectedLicenseProgram" itemValue="#{selectedLicenseProgram}" itemLabel="#{selectedLicenseProgram.programName} #{selectedLicenseProgram.version}"/>
+                            </h:selectOneMenu>
+
+                        </h:panelGrid>
+                        <p:commandButton action="#{dashboardManagedBean.createNewLicenseRequest()}" update=":message :tabView:licenseFlowForm:licenseFlowTable" value="Save" oncomplete="newLicenseFlowDialog.hide()"
+                                         rendered="#{dashboardManagedBean.programs != null}"/>
+                        <h:outputText rendered="#{dashboardManagedBean.programs == null}" value="There are currently no programs in the system for which you can ask a license"
+                                      style="font-weight:bold"/>
+                    </p:dialog>
+                </h:form>
+            </p:tab>
+        </p:tabView>
+        
+    </ui:define>
+</ui:composition>

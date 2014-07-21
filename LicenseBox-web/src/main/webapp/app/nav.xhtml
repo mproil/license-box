@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui">
+    <h:form id="nav">
+        <p:menubar>
+            <p:menuitem value="Dashboard" outcome="/app/index" ajax="true" style="margin-right: 5px"/>|
+            <p:submenu label="Team Management" rendered="#{userSessionManagedBean.teamLeader}">
+                <p:menuitem value="Licenses to Approve" outcome="/app/teamman/requests" ajax="true"/>
+                <p:menuitem value="Reports" outcome="/app/teamman/teamleadReports" ajax="true"/>
+            </p:submenu>
+            <p:submenu label="Management" rendered="#{userSessionManagedBean.manager}" style="margin-right: 5px">
+                <p:menuitem value="Purchases to Approve" outcome="/app/manager/purchaseRequests" ajax="true"/>
+                <p:menuitem value="Reports" outcome="/app/manager/managerReports" ajax="true"/>
+            </p:submenu>
+            <p:submenu label="License Management" rendered="#{userSessionManagedBean.licenseAdmin}" style="margin-right: 5px">
+                <p:menuitem value="Manage Programs" outcome="/app/licman/programManage" ajax="true"/>
+                <p:menuitem value="Manage Licenses" outcome="/app/licman/licenseManage" ajax="true"/>
+                <p:menuitem value="Licenses to Approve" outcome="/app/licman/requests" ajax="true"/>
+                <p:menuitem value="Licenses to Purchase" outcome="/app/licman/purchaseRequests" ajax="true"/>
+                <p:menuitem value="Reports" outcome="/app/licman/licenseManagerReports" ajax="true"/>
+            </p:submenu>
+            <p:submenu label="Administration" rendered="#{userSessionManagedBean.administrator}" style="margin-right: 5px">
+                <p:menuitem value="Manage Users" outcome="/app/admin/userAdmin" ajax="true"/>
+                <p:menuitem value="Manage Teams" outcome="/app/admin/teamAdmin" ajax="true"/>
+                <p:menuitem value="LicenseBox Logs"  outcome="/app/admin/logsAdmin" ajax="true"/>
+            </p:submenu>
+
+            <f:facet name="options">  
+                <p:outputLabel style="margin-left: 0px; margin-right: 10px;" value="#{userSessionManagedBean.fullname}"/>  
+                <p:commandButton value="Logout" icon="ui-icon-extlink" action="#{authenticationBean.logout()}"/>  
+            </f:facet>
+        </p:menubar>
+    </h:form>
+</ui:composition>
