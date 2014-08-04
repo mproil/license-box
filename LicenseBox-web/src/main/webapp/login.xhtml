@@ -9,7 +9,7 @@
     </h:head>
     <h:body>
         <h:outputStylesheet name="css/login_css.css"/>
-        <form id="login-form" action="j_security_check" method="post">
+        <!--<form id="login-form" action="j_security_check" method="post">
             <fieldset>
 
                 <legend>Log in</legend>
@@ -28,7 +28,22 @@
 
                 <input type="submit" style="margin: -20px 0 0 287px;" class="button" value="Log in"/>
             </fieldset>
-	</form>
+	</form>-->
+        
+        <h:form styleClass="form">
+            <h:panelGrid columns="2">
+                <h:outputText styleClass="label" value="Username:"/>
+                <h:inputText styleClass="input" value="#{loginManagedBean.username}"/>
+                
+                <h:outputText styleClass="label" value="Password:"/>
+                <h:inputSecret styleClass="input" value="#{loginManagedBean.password}"/>
+                
+            </h:panelGrid>
+            
+            <br/>
+            
+            <h:commandButton styleClass="button" value="Log in" style="margin: -20px 0 0 287px;" action="#{loginManagedBean.doLogin}"/>
+        </h:form>
         <div class="footer" style="">
             <ui:include src="resources/footer.xhtml"/>
         </div>

@@ -80,4 +80,11 @@ public interface AppUserDaoLocal {
      */
     void setUserPassword(String username, String password);
     
+    /**
+     * Checks if the user and the password are valid
+     * @param username The username
+     * @param password The password
+     * @return True if the password belongs to the username and false otherwise
+     */
+    boolean isUserPasswordValid(String username, String password);
 }

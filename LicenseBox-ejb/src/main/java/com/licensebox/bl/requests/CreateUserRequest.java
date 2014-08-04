@@ -1,5 +1,6 @@
 package com.licensebox.bl.requests;
 
+import com.licensebox.bl.Helper;
 import com.licensebox.bl.email.LicenseBoxEmailLocal;
 import com.licensebox.bl.exception.LicenseBoxUncheckedException;
 import com.licensebox.db.dao.AppRoleDaoLocal;
@@ -8,9 +9,6 @@ import com.licensebox.db.dao.TeamDaoLocal;
 import com.licensebox.db.entity.AppRole;
 import com.licensebox.db.entity.AppUser;
 import com.licensebox.db.entity.Team;
-import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 import java.util.List;
 import javax.annotation.PostConstruct;
@@ -26,7 +24,6 @@ import javax.ejb.Stateless;
 public class CreateUserRequest implements CreateUserRequestLocal {
 
     //<editor-fold defaultstate="collapsed" desc="FINAL Properties">
-    private final String ALGORITHM = "SHA-256";
     private final int PASS_LENGTH = 8;
     //</editor-fold>
     
@@ -55,7 +52,7 @@ public class CreateUserRequest implements CreateUserRequestLocal {
     @Override
     public void setNewPasswordForExistingUser(String username, String fullName, String email) {
         String password = createRandomPassword(PASS_LENGTH);
-        String hashedPassword = createHash(password, ALGORITHM);
+        String hashedPassword = Helper.createHash(password, Helper.SHA_ALGORITHM);
         this.appUserDao.setUserPassword(username, hashedPassword);
         String subject = "Message From LicenseBox";
         String message = String.format("Dear %s,\n\nA new password was generated for you automatically by our staff.\n\n"
@@ -64,27 +61,6 @@ public class CreateUserRequest implements CreateUserRequestLocal {
         this.licenseBoxEmail.sendMessage(fullName, subject, message, email);
     }
     
-    /**
-     * This method creates a hash using the algorithm defined in this
-     * class
-     *
-     * @param password The password we want to hash
-     * @param algorithm the value of algorithm
-     * @return A hashed password
-     */
-    private String createHash(String password, String algorithm) {
-        MessageDigest messageDigest;
-        String retVal;
-        try {
-            messageDigest = MessageDigest.getInstance(algorithm);
-            messageDigest.update(password.getBytes());
-            byte[] shaDigest = messageDigest.digest();
-            retVal = HexBin.encode(shaDigest).toLowerCase();
-        } catch (NoSuchAlgorithmException ex) {
-            retVal = null;
-        }
-        return retVal;
-    }
     
     /**
      * This method creates a random password
@@ -102,7 +78,7 @@ public class CreateUserRequest implements CreateUserRequestLocal {
     @Override
     public void createNewUser(String username, String firstName, String lastName, String email, Integer teamId) {
         String password = this.createRandomPassword(PASS_LENGTH);
-        String hashedPassword = this.createHash(password, ALGORITHM);
+        String hashedPassword = Helper.createHash(password, Helper.SHA_ALGORITHM);
         AppUser appUser = new AppUser();
         appUser.setUsername(username);
         appUser.setPassword(hashedPassword);

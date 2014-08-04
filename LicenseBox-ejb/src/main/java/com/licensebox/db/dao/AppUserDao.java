@@ -166,6 +166,36 @@ public class AppUserDao implements AppUserDaoLocal, Serializable {
             ans=null;
         }
         return ans;
-    }   
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isUserPasswordValid(String username, String password) {
+        
+        AppUser user;
+        boolean retVal;
+        
+        Query query = em.createNamedQuery("AppUser.findByUsername");
+        query.setParameter("username", username);
+        
+        try {
+            List<AppUser> listOfUsers = query.getResultList();
+            
+            if ((listOfUsers == null) || (listOfUsers.size() != 1)){
+                retVal = false;
+            } else {
+                user = listOfUsers.get(0);
+                retVal = user.getPassword().equals(password);
+            }
+        } catch (NoResultException ex) {
+            retVal = false;
+        }
+        
+        return retVal;
+    }
+    
+    
     
 }

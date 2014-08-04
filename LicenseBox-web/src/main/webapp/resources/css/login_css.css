@@ -5,14 +5,22 @@ body				{ font-family: Georgia, serif; background: url("#{resource['images:login
 
 form				{ width: 406px; margin: 225px auto 0; }
 
+.form                           { width: 406px; margin: 225px auto 0; }
+
 legend				{ display: none; }
 
 fieldset			{ border: 0; }
 
 label				{ width: 115px; text-align: right; float: left; margin: 0 10px 0 0; padding: 9px 0 0 0; font-size: 16px; }
 
+.label				{ width: 115px; text-align: right; float: left; margin: 0 10px 0 0; padding: 9px 0 0 0; font-size: 16px; }
+
 input				{ width: 220px; display: block; padding: 4px; margin: 0 0 10px 0; font-size: 18px;
 					  color: #3a3a3a; font-family: Georgia, serif;}
+
+.input				{ width: 220px; display: block; padding: 4px; margin: 0 0 10px 0; font-size: 18px;
+					  color: #3a3a3a; font-family: Georgia, serif;}
+
 input[type=checkbox]            { width: 20px; margin: 0; display: inline-block; }
 					  
 .button				{ background: url("#{resource['images:button-bg.png']}") repeat-x top center; border: 1px solid #999;
