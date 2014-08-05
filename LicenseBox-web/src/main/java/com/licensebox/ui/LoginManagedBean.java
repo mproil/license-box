@@ -67,7 +67,7 @@ public class LoginManagedBean {
             if ((principal == null) || !(principal.getName().equals(this.username))) {
                 request.login(this.username, this.password);
             }
-            result = "app/index";
+            result = "index";
         } catch (ServletException ex) {
             this.password = null;
             Helper.addFacesMessage(Helper.ERROR, ex.getMessage());

@@ -2,13 +2,16 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:ui="http://xmlns.jcp.org/jsf/facelets">
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
     <h:head>
         <title>LicenseBox - Login</title>
         <link rel="shortcut icon" type="image/x-icon" href="#{resource['images:favicon.ico']}"/>
     </h:head>
     <h:body>
         <h:outputStylesheet name="css/login_css.css"/>
+        
+        <p:growl id="message" showDetail="true" sticky="true"/>
         <!--<form id="login-form" action="j_security_check" method="post">
             <fieldset>
 
@@ -42,7 +45,7 @@
             
             <br/>
             
-            <h:commandButton styleClass="button" value="Log in" style="margin: -20px 0 0 287px;" action="#{loginManagedBean.doLogin}"/>
+            <p:commandButton update=":message" styleClass="button" value="Log in" style="margin: -20px 0 0 285px;" action="#{loginManagedBean.doLogin}"/>
         </h:form>
         <div class="footer" style="">
             <ui:include src="resources/footer.xhtml"/>
