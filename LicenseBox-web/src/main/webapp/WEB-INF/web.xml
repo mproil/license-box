@@ -7,7 +7,7 @@
     </context-param>
     <context-param>
         <param-name>primefaces.THEME</param-name>
-        <param-value>ui-lightness</param-value>
+        <param-value>overcast</param-value>
     </context-param>
     <servlet>
         <servlet-name>Faces Servlet</servlet-name>
@@ -92,7 +92,7 @@
     </security-constraint>
     <login-config>
         <auth-method>FORM</auth-method>
-        <realm-name>jdbc-realm-licensebox</realm-name>
+        <realm-name>LicenseBoxRealm</realm-name>
         <form-login-config>
             <form-login-page>/login.xhtml</form-login-page>
             <form-error-page>/loginerror.xhtml</form-error-page>

@@ -1,5 +1,6 @@
 package com.licensebox.bl.requests;
 
+import com.licensebox.bl.Helper;
 import com.licensebox.bl.email.LicenseBoxEmailLocal;
 import com.licensebox.bl.exception.LicenseBoxUncheckedException;
 import com.licensebox.db.dao.AppRoleDaoLocal;
@@ -8,14 +9,21 @@ import com.licensebox.db.dao.TeamDaoLocal;
 import com.licensebox.db.entity.AppRole;
 import com.licensebox.db.entity.AppUser;
 import com.licensebox.db.entity.Team;
-import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Properties;
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.naming.Context;
+import javax.naming.NamingEnumeration;
+import javax.naming.NamingException;
+import javax.naming.directory.DirContext;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
+import javax.naming.ldap.InitialLdapContext;
+import javax.naming.ldap.LdapContext;
 
 /**
  * This EJB handles all the Business Logic regarding the users
@@ -26,7 +34,6 @@ import javax.ejb.Stateless;
 public class CreateUserRequest implements CreateUserRequestLocal {
 
     //<editor-fold defaultstate="collapsed" desc="FINAL Properties">
-    private final String ALGORITHM = "SHA-256";
     private final int PASS_LENGTH = 8;
     //</editor-fold>
     
@@ -55,7 +62,7 @@ public class CreateUserRequest implements CreateUserRequestLocal {
     @Override
     public void setNewPasswordForExistingUser(String username, String fullName, String email) {
         String password = createRandomPassword(PASS_LENGTH);
-        String hashedPassword = createHash(password, ALGORITHM);
+        String hashedPassword = Helper.createHash(password, Helper.SHA_ALGORITHM);
         this.appUserDao.setUserPassword(username, hashedPassword);
         String subject = "Message From LicenseBox";
         String message = String.format("Dear %s,\n\nA new password was generated for you automatically by our staff.\n\n"
@@ -64,27 +71,6 @@ public class CreateUserRequest implements CreateUserRequestLocal {
         this.licenseBoxEmail.sendMessage(fullName, subject, message, email);
     }
     
-    /**
-     * This method creates a hash using the algorithm defined in this
-     * class
-     *
-     * @param password The password we want to hash
-     * @param algorithm the value of algorithm
-     * @return A hashed password
-     */
-    private String createHash(String password, String algorithm) {
-        MessageDigest messageDigest;
-        String retVal;
-        try {
-            messageDigest = MessageDigest.getInstance(algorithm);
-            messageDigest.update(password.getBytes());
-            byte[] shaDigest = messageDigest.digest();
-            retVal = HexBin.encode(shaDigest).toLowerCase();
-        } catch (NoSuchAlgorithmException ex) {
-            retVal = null;
-        }
-        return retVal;
-    }
     
     /**
      * This method creates a random password
@@ -100,12 +86,16 @@ public class CreateUserRequest implements CreateUserRequestLocal {
      * {@inheritDoc}
      */
     @Override
-    public void createNewUser(String username, String firstName, String lastName, String email, Integer teamId) {
+    public void createNewUser(boolean ldapUser, String username, String firstName, String lastName, String email, Integer teamId) {
         String password = this.createRandomPassword(PASS_LENGTH);
-        String hashedPassword = this.createHash(password, ALGORITHM);
         AppUser appUser = new AppUser();
         appUser.setUsername(username);
-        appUser.setPassword(hashedPassword);
+        if (!ldapUser) {
+            String hashedPassword = Helper.createHash(password, Helper.SHA_ALGORITHM);
+            appUser.setPassword(hashedPassword);
+        }
+        
+        appUser.setLdapUser(ldapUser);
         appUser.setFirstName(firstName);
         appUser.setLastName(lastName);
         
@@ -126,7 +116,11 @@ public class CreateUserRequest implements CreateUserRequestLocal {
         
         // Prepare the email for the user
         String fullName = String.format("%s %s", new Object[] {firstName, lastName});
-        createAndSendEmailToNewUser(fullName, email, username, password);
+        if (!ldapUser) {
+            createAndSendEmailToNewUser(fullName, email, username, password);
+        } else {
+            createAndSendEmailToNewUser(fullName, email);
+        }
     }
     
     /**
@@ -145,6 +139,15 @@ public class CreateUserRequest implements CreateUserRequestLocal {
                 + "Please keep it in a safe place.\n\n\n"
                 + "Sincerely,\nThe LicenseBox Team", 
                 new Object[] {fullName, username, password});
+        this.licenseBoxEmail.sendMessage(fullName, subject, message, email);
+    }
+    
+    private void createAndSendEmailToNewUser(String fullName, String email) {
+        String subject = "Welcome to LicenseBox";
+        String message = String.format("Dear %s,\n\nA new user was created for you in LicenseBox.\n\n"
+                + "Please use your enterprise user to login to the system\n\n"
+                + "Sincerely,\nThe LicenseBox Team", 
+                new Object[] {fullName});
         this.licenseBoxEmail.sendMessage(fullName, subject, message, email);
     }
 
@@ -292,5 +295,99 @@ public class CreateUserRequest implements CreateUserRequestLocal {
             
             this.licenseBoxEmail.sendMessage(userFullName, subject, message, email);
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public SearchResult searchForLdapUser(String username) {
+        Properties props = Helper.loadPropertiesFile();
+        
+        if (props == null) {
+            return null;
+        }
+        
+        Hashtable<String, String> env = generateHashtable(props);
+        
+        return getResultsFromLdap(env, props, username);
+    }
+        
+    private Hashtable<String, String> generateHashtable(Properties props) {
+        Hashtable<String, String> retVal = new Hashtable<>();
+        
+        //String ldapServer = props.getProperty("LDAP_SERVER");
+        String ldapServer = props.getProperty(Helper.LDAP_SERVER);
+        //String ldapUsername = props.getProperty("LDAP_USERNAME");
+        String ldapUsername = props.getProperty(Helper.LDAP_USERNAME);
+        //String ldapPassword = props.getProperty("LDAP_PASSWORD");
+        String ldapPassword = props.getProperty(Helper.LDAP_PASSWORD);
+        
+        retVal.put(Context.SECURITY_AUTHENTICATION, "simple");
+        if (ldapUsername != null) {
+            retVal.put(Context.SECURITY_PRINCIPAL, ldapUsername);
+        } else {
+            return null;
+        }
+        
+        if (ldapPassword != null) {
+            retVal.put(Context.SECURITY_CREDENTIALS, ldapPassword);
+        } else {
+            return null;
+        }
+        
+        if (ldapServer != null) {
+            retVal.put(Context.PROVIDER_URL, ldapServer);
+        } else {
+            return null;
+        }
+        
+        retVal.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+        
+        return retVal;
+    }
+    
+    private SearchResult findAccountByAccountName(DirContext ctx, String ldapSearchBase, String accountName) throws NamingException {
+
+        String searchFilter = "(&(objectClass=user)(sAMAccountName=" + accountName + "))";
+
+        SearchControls searchControls = new SearchControls();
+        searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+
+        NamingEnumeration<SearchResult> results = ctx.search(ldapSearchBase, searchFilter, searchControls);
+
+        SearchResult searchResult = null;
+        if(results.hasMoreElements()) {
+             searchResult = (SearchResult) results.nextElement();
+
+            //make sure there is not another item available, there should be only 1 match
+//            if(results.hasMoreElements()) {
+//                System.err.println("Matched multiple users for the accountName: " + accountName);
+//                return null;
+//            }
+        }
+        
+        return searchResult;
+    }
+    
+    private SearchResult getResultsFromLdap(Hashtable<String, String> env, Properties props, String accountName) {
+        SearchResult retVal;
+        LdapContext ctx = null;
+        try {
+            ctx = new InitialLdapContext(env, null);
+            //String ldapSearchBase = props.getProperty("LDAP_SEARCH_BASE");
+            String ldapSearchBase = props.getProperty(Helper.LDAP_SEARCH_BASE);
+            retVal = findAccountByAccountName(ctx, ldapSearchBase, accountName);
+        } catch (NamingException ex) {
+            return null;
+        } finally {
+            if (ctx != null) {
+                try {
+                    ctx.close();
+                } catch (NamingException ex) {
+                }
+            }
+        }
+        return retVal;
     }
 }

@@ -2,8 +2,8 @@ package com.licensebox.ui.page.administration;
 
 import com.licensebox.bl.requests.CreateUserRequestLocal;
 import com.licensebox.db.dao.AppRoleDaoLocal;
-import com.licensebox.db.dao.TeamDaoLocal;
 import com.licensebox.db.dao.AppUserDaoLocal;
+import com.licensebox.db.dao.TeamDaoLocal;
 import com.licensebox.db.entity.AppRole;
 import com.licensebox.db.entity.AppUser;
 import com.licensebox.db.entity.Team;
@@ -19,6 +19,9 @@ import javax.faces.bean.ViewScoped;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.validator.ValidatorException;
+import javax.naming.NamingException;
+import javax.naming.directory.Attribute;
+import javax.naming.directory.SearchResult;
 import org.apache.log4j.Logger;
 
 /**
@@ -238,10 +241,15 @@ public class UserAdminManagedBean implements Serializable {
     
     /**
      * This method creates a new user
+     * @param ldapUser Marks if this is an LDAP User
      */
-    public void createNewUser() {
+    public void createNewUser(boolean ldapUser) {
         try {
-            this.createUserRequest.createNewUser(this.username, this.firstName, this.lastName, this.email, this.team.getTeamId());
+            Integer tempTeamId = null;
+            if (this.team != null) {
+                tempTeamId = this.team.getTeamId();
+            }
+            this.createUserRequest.createNewUser(ldapUser, this.username, this.firstName, this.lastName, this.email, tempTeamId);
             logger.info(this.currentUsername + " created the new user " + this.username);
             Helper.addFacesMessage(Helper.INFO, "The user " + this.username + " was created");
             this.users = this.appUserDao.getUserList();
@@ -432,6 +440,39 @@ public class UserAdminManagedBean implements Serializable {
         } catch (Exception ex) {
             Helper.addFacesMessage(Helper.ERROR, ex.getMessage());
         }
+    }
+    
+    public void searchForLdapUser() {
+        SearchResult sr = this.createUserRequest.searchForLdapUser(this.username);
+        
+        this.firstName = getAttributeFromSearchResult(sr, "givenName");
+        if (this.firstName.equals("")) {
+            Helper.addFacesMessage(Helper.ERROR, "Could not find first name for " + this.username);
+        }
+        
+        this.lastName = getAttributeFromSearchResult(sr, "sn");
+        if (this.lastName.equals("")) {
+            Helper.addFacesMessage(Helper.ERROR, "Could not find last name for " + this.username);
+        }
+        
+        this.email = getAttributeFromSearchResult(sr, "mail");
+        if (this.email.equals("")) {
+            Helper.addFacesMessage(Helper.ERROR, "Could not find email for " + this.username);
+        }
+    }
+    
+    private String getAttributeFromSearchResult(SearchResult sr, String attribName) {
+        Attribute tempValue = sr.getAttributes().get(attribName);
+        String retVal = "";
+        if (tempValue != null) {
+            try {
+                retVal = tempValue.get().toString();
+            }
+            catch (NamingException ex) {
+                Helper.addFacesMessage(Helper.ERROR, ex.getMessage());
+            }
+        }
+        return retVal;
     }
    
 }

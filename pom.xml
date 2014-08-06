@@ -23,6 +23,7 @@
         <module>LicenseBox-ear</module>
         <module>LicenseBox-web</module>
         <module>LicenseBox-ejb</module>
+<!--        <module>licenseboxrealm</module>-->
     </modules>
     <reporting>
         <plugins>

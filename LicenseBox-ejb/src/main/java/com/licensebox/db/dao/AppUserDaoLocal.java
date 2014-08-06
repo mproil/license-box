@@ -31,7 +31,7 @@ public interface AppUserDaoLocal {
     /**
      * Returns the full name of a user
      * @param username The username for which we want to return the full name
-     * @return A String in the following format: <First Name> <Last Name>
+     * @return A String in the following format: "First Name" "Last Name"
      * If a user with this username does not exist, an empty String is returned
      */
     String getUserFullName(String username);
@@ -80,4 +80,11 @@ public interface AppUserDaoLocal {
      */
     void setUserPassword(String username, String password);
     
+    /**
+     * Checks if the user and the password are valid
+     * @param username The username
+     * @param password The password
+     * @return True if the password belongs to the username and false otherwise
+     */
+    boolean isUserPasswordValid(String username, String password);
 }

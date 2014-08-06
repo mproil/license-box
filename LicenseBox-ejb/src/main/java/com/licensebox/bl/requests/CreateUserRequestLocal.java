@@ -1,6 +1,7 @@
 package com.licensebox.bl.requests;
 
 import javax.ejb.Local;
+import javax.naming.directory.SearchResult;
 
 /**
  * This interface defines all the methods that can be used by the system
@@ -22,13 +23,14 @@ public interface CreateUserRequestLocal {
 
     /**
      * Creates a new user and adds him to the database
+     * @param ldapUser Indicates if this is an LDAP user
      * @param username The username of the new user
      * @param firstName The first name of the new user
      * @param lastName The last name of the new user
      * @param email The email of the new user
      * @param teamId The team id of the new user (can be null)
      */
-    void createNewUser(String username, String firstName, String lastName, String email, Integer teamId);
+    void createNewUser(boolean ldapUser, String username, String firstName, String lastName, String email, Integer teamId);
     
     /**
      * This method adds the manager role to a specific user
@@ -69,4 +71,10 @@ public interface CreateUserRequestLocal {
      */
     void enableUser(String username);
     
+    /**
+     * This method searches for the LDAP user and returns the search result
+     * @param username The username to search for
+     * @return The SearchResult object that contains the results of the search
+     */
+    SearchResult searchForLdapUser(String username);
 }

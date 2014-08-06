@@ -36,6 +36,13 @@
                 <configuration>
                     <version>6</version>
                     <defaultLibBundleDir>lib</defaultLibBundleDir>
+                    <modules>
+                        <webModule>
+                            <groupId>com.licensebox</groupId>
+                            <artifactId>LicenseBox-web</artifactId>
+                            <contextRoot>/LicenseBox</contextRoot>
+                        </webModule>
+                    </modules>
                 </configuration>
             </plugin>
         </plugins>

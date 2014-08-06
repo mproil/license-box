@@ -64,9 +64,12 @@ public class AppUser implements Serializable {
     @Size(max = 100)
     @Column(name = "email")
     private String email;
-    @Basic(optional = false)
     @NotNull
-    @Size(min = 1, max = 64)
+    @Column(name = "ldap")
+    private boolean ldap;
+    @Basic(optional = false)
+//    @NotNull
+    @Size(min = 0, max = 64)
     @Column(name = "password")
     private String password;
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "appUser")
@@ -133,6 +136,14 @@ public class AppUser implements Serializable {
 
     public void setTeam(Team team) {
         this.team = team;
+    }
+    
+    public boolean isLdapUser() {
+        return ldap;
+    }
+    
+    public void setLdapUser(boolean ldap) {
+        this.ldap = ldap;
     }
 
     @XmlTransient
