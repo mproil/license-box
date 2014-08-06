@@ -9,7 +9,6 @@ import com.licensebox.db.dao.TeamDaoLocal;
 import com.licensebox.db.entity.AppRole;
 import com.licensebox.db.entity.AppUser;
 import com.licensebox.db.entity.Team;
-import java.io.IOException;
 import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
@@ -373,14 +372,21 @@ public class CreateUserRequest implements CreateUserRequestLocal {
     
     private SearchResult getResultsFromLdap(Hashtable<String, String> env, Properties props, String accountName) {
         SearchResult retVal;
+        LdapContext ctx = null;
         try {
-            LdapContext ctx = new InitialLdapContext(env, null);
+            ctx = new InitialLdapContext(env, null);
             //String ldapSearchBase = props.getProperty("LDAP_SEARCH_BASE");
             String ldapSearchBase = props.getProperty(Helper.LDAP_SEARCH_BASE);
             retVal = findAccountByAccountName(ctx, ldapSearchBase, accountName);
-        }
-        catch (NamingException ex) {
+        } catch (NamingException ex) {
             return null;
+        } finally {
+            if (ctx != null) {
+                try {
+                    ctx.close();
+                } catch (NamingException ex) {
+                }
+            }
         }
         return retVal;
     }

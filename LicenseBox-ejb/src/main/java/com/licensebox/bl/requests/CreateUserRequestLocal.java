@@ -71,5 +71,10 @@ public interface CreateUserRequestLocal {
      */
     void enableUser(String username);
     
+    /**
+     * This method searches for the LDAP user and returns the search result
+     * @param username The username to search for
+     * @return The SearchResult object that contains the results of the search
+     */
     SearchResult searchForLdapUser(String username);
 }
