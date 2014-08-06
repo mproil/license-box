@@ -13,7 +13,9 @@ import javax.security.auth.login.LoginException;
 
 
 /**
- *
+ * This is a custom Realm that is used to authenticate users
+ * both from an LDAP and a DB.
+ * 
  * @author Michael Paltsev
  */
 public class LicenseBoxRealm extends AppservRealm {

@@ -5,7 +5,7 @@ import java.util.List;
 import javax.security.auth.login.LoginException;
 
 /**
- *
+ * This is the login module that is responsible for the authentication
  * @author Michael Paltsev
  */
 public class LicenseBoxLoginModule extends AppservPasswordLoginModule {
