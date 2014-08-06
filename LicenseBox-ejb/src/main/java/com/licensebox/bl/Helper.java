@@ -64,10 +64,9 @@ public class Helper {
     public static Properties loadPropertiesFile() {
         Properties props = new Properties();
         try {
-            props.load(Helper.class.getResourceAsStream(PROPERTIES_FILENAME));
-        }
-        catch (IOException ex) {
-            props = null;
+            props.load(Helper.class.getClassLoader().getResourceAsStream(PROPERTIES_FILENAME));
+        } catch (IOException ex) {
+            
         }
         return props;
     }
