@@ -1,14 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package com.licensebox.bl;
 
 import com.sun.org.apache.xerces.internal.impl.dv.util.HexBin;
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Properties;
 
 /**
  *
@@ -17,13 +13,19 @@ import java.security.NoSuchAlgorithmException;
 public class Helper {
     
     
-    public static final String LDAP_INITIAL_CONTEXT_FACTORY = "LDAP_INITIAL_CONTEXT_FACTORY";
-    public static final String LDAP_PROVIDER_URL = "LDAP_PROVIDER_URL";
-    public static final String LDAP_SECURITY_AUTHENTICATION = "LDAP_SECURITY_AUTHENTICATION";
-    public static final String LDAP_SECURITY_PRINCIPAL = "LDAP_SECURITY_PRINCIPAL";
-    public static final String LDAP_SECURITY_CREDENTIALS = "LDAP_SECURITY_CREDENTIALS";
+//    public static final String LDAP_INITIAL_CONTEXT_FACTORY = "LDAP_INITIAL_CONTEXT_FACTORY";
+//    public static final String LDAP_PROVIDER_URL = "LDAP_PROVIDER_URL";
+//    public static final String LDAP_SECURITY_AUTHENTICATION = "LDAP_SECURITY_AUTHENTICATION";
+//    public static final String LDAP_SECURITY_PRINCIPAL = "LDAP_SECURITY_PRINCIPAL";
+//    public static final String LDAP_SECURITY_CREDENTIALS = "LDAP_SECURITY_CREDENTIALS";
+    public static final String LDAP_SERVER = "LDAP_SERVER";
+    public static final String LDAP_SEARCH_BASE = "LDAP_SEARCH_BASE";
+    public static final String LDAP_USERNAME = "LDAP_USERNAME";
+    public static final String LDAP_PASSWORD = "LDAP_PASSWORD";
     
     public static final String SHA_ALGORITHM = "SHA-256";
+    
+    private static final String PROPERTIES_FILENAME = "licensebox_config.properties";
     
     private Helper() {
         
@@ -52,6 +54,22 @@ public class Helper {
             retVal = null;
         }
         return retVal;
+    }
+
+    /**
+     * Loads the properties for this application
+     * @return Properties that are loaded. If no properties file is found, an
+     * empty properties object is returned
+     */
+    public static Properties loadPropertiesFile() {
+        Properties props = new Properties();
+        try {
+            props.load(Helper.class.getResourceAsStream(PROPERTIES_FILENAME));
+        }
+        catch (IOException ex) {
+            props = null;
+        }
+        return props;
     }
     
 }

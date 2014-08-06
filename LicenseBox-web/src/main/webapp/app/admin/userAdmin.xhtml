@@ -45,7 +45,7 @@
                     </ui:repeat>
                 </p:column>
                 <p:column headerText="Password">
-                    <p:commandButton value="Reset Password" update=":confirmForm:confirmDialog" oncomplete="confirmDialog.show()">
+                    <p:commandButton value="Reset Password" update=":confirmForm:confirmDialog" oncomplete="confirmDialog.show()" rendered="#{!user.ldapUser}">
                         <f:setPropertyActionListener value="#{user}" target="#{userAdminManagedBean.selectedUser}"/>
                     </p:commandButton>
                 </p:column>
@@ -64,6 +64,8 @@
                     <div style="overflow: auto; width: 100%">
                     <p:commandButton id="newUserButton" value="Create New User" style="float: left"
                                      icon="ui-icon-person" update=":newUserDialogForm:display" oncomplete="newUserDialog.show()"/>
+                    <p:commandButton id="newLdapUserButton" value="Create New LDAP User" style="float: left"
+                                     icon="ui-icon-person" update=":newLdapUserDialogForm:display" oncomplete="newLdapUserDialog.show()"/>
                     <p:commandButton id="setManager" value="Set New Manager" style="float: left"
                                      update=":addManagerForm:viewAddManagerDlg" oncomplete="viewAddManagerDialog.show()"/>
                     <p:commandButton id="removeManager" value="Remove Manager" style="float: left"
@@ -124,16 +126,16 @@
 
                     <h:outputText value="First Name:" />  
                     <h:inputText id="firstName" value="#{userAdminManagedBean.selectedUser.firstName}" style="font-weight:bold"
-                                 required="true" requiredMessage="Please enter a first name for the user"/>  
+                                 required="true" requiredMessage="Please enter a first name for the user" readonly="#{userAdminManagedBean.selectedUser.ldapUser}"/>  
 
 
                     <h:outputText value="Last Name:" />  
                     <h:inputText id="lastName" value="#{userAdminManagedBean.selectedUser.lastName}" style="font-weight:bold"
-                                 required="true" requiredMessage="Please enter a last name for the user"/>  
+                                 required="true" requiredMessage="Please enter a last name for the user" readonly="#{userAdminManagedBean.selectedUser.ldapUser}"/>  
 
                     <h:outputText value="Email:" />  
                     <h:inputText id="email" value="#{userAdminManagedBean.selectedUser.email}" style="font-weight:bold"
-                                 required="true" requiredMessage="Please enter an email for the user"/>  
+                                 required="true" requiredMessage="Please enter an email for the user" readonly="#{userAdminManagedBean.selectedUser.ldapUser}"/>  
 
                     <h:outputText value="Team:" />
                     <h:selectOneMenu id="teamId" value="#{userAdminManagedBean.selectedUser.team}" converter="#{teamConverter}">
@@ -174,8 +176,39 @@
                     </h:selectOneMenu>
 
                 </h:panelGrid>
-                <p:commandButton action="#{userAdminManagedBean.createNewUser}" value="Save" update=":message :userAdminForm:userTable"
+                <p:commandButton action="#{userAdminManagedBean.createNewUser(false)}" value="Save" update=":message :userAdminForm:userTable"
                                  oncomplete="newUserDialog.hide()"/>
+            </p:dialog>
+        </h:form>
+        
+        <h:form id="newLdapUserDialogForm">
+                    <p:dialog header="User Detail" widgetVar="newLdapUserDialog" resizable="true" id="userDlg"  
+                      showEffect="fade" hideEffect="fade" modal="true">  
+
+                <h:panelGrid id="display" columns="2" cellpadding="4" style="margin:0 auto;">   
+
+                    <h:outputText value="Username:" />  
+                    <h:inputText id="username"  value="#{userAdminManagedBean.username}" style="font-weight:bold"
+                                 required="true" requiredMessage="Please enter a username" validator="#{userAdminManagedBean.validateUsername}"/>
+
+                    <h:outputText value="First Name:" />  
+                    <h:outputText id="firstName" value="#{userAdminManagedBean.firstName}" style="font-weight:bold"/>  
+
+                    <h:outputText value="Last Name:" />  
+                    <h:outputText id="lastName" value="#{userAdminManagedBean.lastName}" style="font-weight:bold"/>  
+
+                    <h:outputText value="Email:" />  
+                    <h:outputText id="email" value="#{userAdminManagedBean.email}" style="font-weight:bold"/>  
+
+                    <h:outputText value="Team:" />
+                    <h:selectOneMenu id="teamId" value="#{userAdminManagedBean.team}" converter="#{teamConverter}">
+                        <f:selectItems value="#{userAdminManagedBean.teams}" var="selectedTeam" itemValue="#{selectedTeam}" itemLabel="#{selectedTeam.teamName}"/>
+                    </h:selectOneMenu>
+
+                </h:panelGrid>
+                <p:commandButton action="#{userAdminManagedBean.searchForLdapUser}" value="Load User Details" update=":message :newLdapUserDialogForm:display" />
+                <p:commandButton action="#{userAdminManagedBean.createNewUser(true)}" value="Save" update=":message :userAdminForm:userTable"
+                                 oncomplete="newLdapUserDialogForm.hide()"/>
             </p:dialog>
         </h:form>
 
